@@ -29,9 +29,16 @@
         </div>
     </div>
     <div class="mt-10 overflow-x-auto w-full max-w-3xl bg-white mx-auto p-6 shadow-md rounded-md relative">
-        <h1 class="text-3xl font-bold mb-5 text-gray-500 text-center w-full">Favorite Jokes
-        </h1>
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div class="relative pb-7">
+            <h1 class="text-3xl font-bold text-gray-500 text-center">Favorite Jokes</h1>
+
+            <div class="absolute top-0 right-0 text-right">
+                <div class="text-md font-medium text-gray-500">Total: {{ tableJokes.length }}</div>
+                <div class="text-md font-medium text-gray-500">Avg Rating: {{ averageRating }}</div>
+            </div>
+        </div>
+        <hr class="my-1">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pt-4">
             <div class="flex items-center gap-2">
                 <label class="text-gray-700 font-medium">Search:</label>
                 <input v-model="searchQuery" type="text" placeholder="Search jokes..."
@@ -204,7 +211,14 @@ const filteredJokes = computed(() => {
         })
     }
     return filtered
-})
+});
+
+const averageRating = computed(() => {
+    if (tableJokes.value.length === 0) return 0
+    const total = tableJokes.value.reduce((sum, joke) => sum + (joke.rating ?? 0), 0)
+    const count = tableJokes.value.filter(j => j.rating !== undefined).length
+    return count > 0 ? (total / count).toFixed(1) : 0
+});
 
 </script>
 
