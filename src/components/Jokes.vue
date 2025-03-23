@@ -41,7 +41,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(joke, index) in tableJokes" class="border-t hover:bg-gray-50 transition">
+                <tr v-for="(joke, index) in tableJokes" class="border-t hover:bg-gray-50 transition cursor-pointer">
                     <td class="px-2 py-2 capitalize">{{ joke.type }}</td>
                     <td class="px-2 py-2">{{ joke.setup }}</td>
                     <td class="px-2 py-2">{{ joke.punchline }}</td>
@@ -65,6 +65,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { getProgrammingJokes, getRandomJoke } from '../services/requests'
+import Swal from 'sweetalert2'
 
 type JokeType = 'random' | 'programming' | null
 const selected = ref<JokeType>(null)
@@ -80,10 +81,15 @@ async function fetchJoke(type: JokeType) {
         } else if (type === 'programming') {
             joke.value = await getProgrammingJokes()
         }
-
         console.log('Joke fetched:', joke.value)
     } catch (error) {
         console.error('Error fetching joke:', error)
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Failed to fetch joke. Please try again later.',
+            confirmButtonColor: '#d33'
+        })
     }
 }
 
@@ -102,9 +108,25 @@ function addJoke(joke: RatedJoke) {
             tableJokes.value.push({ ...joke, rating: 0 })
         } else {
             console.log('Already exist')
+            Swal.fire({
+                icon: 'info',
+                title: 'Already exists',
+                text: 'This joke is already in your favorites!',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#6366f1'
+            })
+
         }
     } else {
         console.log('Choose one Joke Category')
+        Swal.fire({
+            icon: 'warning',
+            title: 'No category selected',
+            text: 'Please select a joke category first!',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3085d6'
+        })
+
     }
 }
 
