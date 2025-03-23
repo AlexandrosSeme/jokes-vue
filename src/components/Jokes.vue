@@ -5,7 +5,7 @@
                 <font-awesome-icon icon="check" class="mr-2" />
                 Random
             </button>
-            <button id="programmingButton" @click="randomJoke('programming')" :class="buttonClass('programming')">
+            <button id="programmingButton" @click="programmingJoke('programming')" :class="buttonClass('programming')">
                 <font-awesome-icon icon="check" class="mr-2" />
                 Programming
             </button>
@@ -15,10 +15,12 @@
                 {{ currentJoke.type }} Joke
             </h2>
             <p class="text-gray-600 mb-2">
-                <span class="mr-2"> <font-awesome-icon icon="circle-exclamation" class="text-blue-400 info mr-2" /></span>{{ currentJoke.setup }}
+                <span class="mr-2"> <font-awesome-icon icon="circle-exclamation"
+                        class="text-blue-400 info mr-2" /></span>{{ currentJoke.setup }}
             </p>
             <p class="font-semibold text-gray-800">
-                <span class="mr-2"> <font-awesome-icon icon="face-smile" class="text-gray-500 mr-2" /></span>{{ currentJoke.punchline }}
+                <span class="mr-2"> <font-awesome-icon icon="face-smile" class="text-gray-500 mr-2" /></span>{{
+                    currentJoke.punchline }}
             </p>
         </div>
     </div>
@@ -26,7 +28,10 @@
 
 
 <script setup lang="ts">
+
 import { ref, computed } from 'vue'
+import { getProgrammingJokes, getRandomJoke } from '../services/requests'
+
 type JokeType = 'random' | 'programming' | null
 const selected = ref<JokeType>(null)
 const jokes = {
@@ -42,13 +47,22 @@ const jokes = {
     }
 }
 
+
 const currentJoke = computed(() => {
     return selected.value ? jokes[selected.value] : { type: '', setup: '', punchline: '' }
 });
 
-function randomJoke(type: JokeType) {
+async function randomJoke(type: JokeType) {
     selected.value = type
     console.log('clicked:', type)
+    this.getType = await getRandomJoke();
+    console.log('getRandom:', this.getType)
+}
+
+async function programmingJoke(type: JokeType){
+    this.getTypeProgramming = await getProgrammingJokes();
+    console.log('getRandom:', this.getTypeProgramming)
+    
 }
 
 function buttonClassbck(type: JokeType) {
@@ -60,22 +74,23 @@ function buttonClassbck(type: JokeType) {
 }
 
 function buttonClass(type: JokeType) {
-  const base = 'px-4 py-2 rounded-full border font-medium transition-all flex items-center cursor-pointer'
-  const isActive = selected.value === type
+    const base = 'px-4 py-2 rounded-full border font-medium transition-all flex items-center cursor-pointer'
+    const isActive = selected.value === type
 
-  return isActive
-    ? `${base} button-active text-white border-transparent`
-    : `${base} bg-white text-gray-700 border-gray-300 hover:bg-gray-200`
+    return isActive
+        ? `${base} button-active text-white border-transparent`
+        : `${base} bg-white text-gray-700 border-gray-300 hover:bg-gray-200`
 }
+
 </script>
 
 <style>
 .button-active {
-  background-color: #5d648d ;
+    background-color: #5d648d;
 }
 
 .button-active:hover {
-  background-color: #5d648d ;
+    background-color: #5d648d;
 }
 
 #randomButton:hover {
@@ -85,7 +100,8 @@ function buttonClass(type: JokeType) {
 #programmingButton:hover {
     cursor: pointer;
 }
-.info{
+
+.info {
     color: rgb(45, 104, 240);
 }
 </style>
