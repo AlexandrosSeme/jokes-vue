@@ -63,7 +63,7 @@
 
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { getProgrammingJokes, getRandomJoke } from '../services/requests'
 
 type JokeType = 'random' | 'programming' | null
@@ -96,11 +96,15 @@ function buttonClass(type: JokeType) {
 }
 
 function addJoke(joke: RatedJoke) {
-    const exists = tableJokes.value.find(existing => existing.id === joke.id)
-    if (!exists && joke != null) {
-        tableJokes.value.push({ ...joke, rating: 0 })
+    if (joke != null) {
+        const exists = tableJokes.value.find(existing => existing.id === joke.id)
+        if (!exists) {
+            tableJokes.value.push({ ...joke, rating: 0 })
+        } else {
+            console.log('Already exist')
+        }
     } else {
-        console.log('Already exist')
+        console.log('Choose one Joke Category')
     }
 }
 
@@ -114,6 +118,17 @@ function setRating(joke: RatedJoke, rating: number) {
 function removeJoke(id: number) {
     tableJokes.value = tableJokes.value.filter(joke => joke.id !== id)
 }
+
+onMounted(() => {
+    const saved = localStorage.getItem('favoriteJokes')
+    if (saved) {
+        tableJokes.value = JSON.parse(saved)
+    }
+})
+
+watch(tableJokes, (newJokes) => {
+    localStorage.setItem('favoriteJokes', JSON.stringify(newJokes))
+}, { deep: true })
 
 </script>
 
