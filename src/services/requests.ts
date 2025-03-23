@@ -13,5 +13,6 @@ export async function getProgrammingJokes(): Promise<any> {
     if (!response.ok) {
         throw new Error('failed to fetch joke')
     }
-    return await response.json();
+    const data = await response.json()
+    return data[0];
 }
