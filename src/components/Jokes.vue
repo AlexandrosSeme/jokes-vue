@@ -13,19 +13,33 @@
             </button>
         </div>
         <div v-if="joke" class="bg-gray-50 p-5 rounded-lg shadow-inner">
-            <h2 class="text-lg font-semibold mb-2 capitalize text-gray-700">
-                {{ joke.type }} Joke
-            </h2>
-            <p class="text-gray-600 mb-2">
-                <span class="mr-2">
-                    <font-awesome-icon icon="circle-exclamation" class="text-blue-400 info mr-2" />
-                </span>{{ joke.setup }}
-            </p>
-            <p class="font-semibold text-gray-800">
-                <span class="mr-2">
-                    <font-awesome-icon icon="face-smile" class="text-gray-500 mr-2" />
-                </span>{{ joke.punchline }}
-            </p>
+            <div v-if="loadingSpinner" class="flex justify-center my-4">
+                <div class="spinner"></div>
+            </div>
+            <div v-else>
+                <h2 class="text-lg font-semibold mb-2 capitalize text-gray-700">
+                    {{ joke.type }} Joke
+                </h2>
+                <p class="text-gray-600 mb-2">
+                    <span class="mr-2">
+                        <font-awesome-icon icon="circle-exclamation" class="text-blue-400 info mr-2" />
+                    </span>{{ joke.setup }}
+                </p>
+                <p class="font-semibold text-gray-800">
+
+
+                    <span v-if="punchlineLoading">
+                        <div class="spinner w-4 h-4 inline-block"></div>
+                    </span>
+
+                    <span v-else>
+                        <span class="mr-2">
+                            <font-awesome-icon icon="face-smile" class="text-gray-500 mr-2" />
+                        </span>
+                        {{ joke.punchline }}
+                    </span>
+                </p>
+            </div>
         </div>
     </div>
     <div class="mt-10 overflow-x-auto w-full max-w-3xl bg-white mx-auto p-6 shadow-md rounded-md relative">
@@ -108,6 +122,8 @@ type RatedJoke = { id: number; type: string; setup: string; punchline: string; r
 const searchQuery = ref('')
 const filterRating = ref<number | ''>('')
 const sortBy = ref<'rating' | 'alphabetical' | ''>('')
+const loadingSpinner = ref<boolean>(false)
+const punchlineLoading = ref(false)
 
 onMounted(() => {
     const saved = localStorage.getItem('favoriteJokes')
@@ -121,6 +137,8 @@ watch(tableJokes, (newJokes) => {
 }, { deep: true })
 
 async function fetchJoke(type: JokeType) {
+    loadingSpinner.value = true
+    punchlineLoading.value = false
     selected.value = type
     try {
         if (type === 'random') {
@@ -128,6 +146,10 @@ async function fetchJoke(type: JokeType) {
         } else if (type === 'programming') {
             joke.value = await getProgrammingJokes()
         }
+        punchlineLoading.value = true
+        setTimeout(() => {
+            punchlineLoading.value = false
+        }, 2000)
         console.log('Joke fetched:', joke.value)
     } catch (error) {
         console.error('Error fetching joke:', error)
@@ -137,6 +159,8 @@ async function fetchJoke(type: JokeType) {
             text: 'Failed to fetch joke. Please try again later.',
             confirmButtonColor: '#d33'
         })
+    } finally {
+        loadingSpinner.value = false
     }
 }
 
@@ -223,6 +247,25 @@ const averageRating = computed(() => {
 </script>
 
 <style scoped>
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #6366f1;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 .button-active {
     background-color: #5d648d;
 }
