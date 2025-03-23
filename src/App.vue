@@ -1,44 +1,10 @@
 <script setup>
-import Jokes from './components/Jokes.vue';
+import Jokes from './components/Jokes.vue'
 </script>
 
 <template>
-  <header>
-    <div class="wrapper">
-      You did it!
-    </div>
-  </header>
-
-  <!-- <main> -->
-  <Jokes />
-  <!-- </main> -->
+  <div class="min-h-screen w-full bg-gray-100 flex flex-col items-center pt-10 px-4">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800 text-center w-full">Select Joke Category</h1>
+    <Jokes class="w-full" />
+  </div>
 </template>
-
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style>
