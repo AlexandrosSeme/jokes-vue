@@ -29,7 +29,32 @@
         </div>
     </div>
     <div class="mt-10 overflow-x-auto w-full max-w-3xl bg-white mx-auto p-6 shadow-md rounded-md relative">
-        <h1 class="text-3xl font-bold mb-5 text-gray-500 text-center w-full">Favorite Jokes</h1>
+        <h1 class="text-3xl font-bold mb-5 text-gray-500 text-center w-full">Favorite Jokes
+        </h1>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div class="flex items-center gap-2">
+                <label class="text-gray-700 font-medium">Search:</label>
+                <input v-model="searchQuery" type="text" placeholder="Search jokes..."
+                    class="border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-gray-700 font-medium">Filter by:</label>
+                <select v-model="filterRating"
+                    class="border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <option value="">All Ratings</option>
+                    <option v-for="r in 5" :key="r" :value="r">★ {{ r }}</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-gray-700 font-medium">Sort by:</label>
+                <select v-model="sortBy"
+                    class="border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <option value="">Unset</option>
+                    <option value="rating">Rating</option>
+                    <option value="alphabetical">Alphabetically</option>
+                </select>
+            </div>
+        </div>
         <table class="w-full table-auto border border-gray-300 rounded-md shadow-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -41,12 +66,13 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(joke, index) in tableJokes" class="border-t hover:bg-gray-50 transition cursor-pointer">
+                <tr v-for="(joke, index) in filteredJokes" :key="joke.id"
+                    class="border-t hover:bg-gray-50 transition cursor-pointer">
                     <td class="px-2 py-2 capitalize">{{ joke.type }}</td>
                     <td class="px-2 py-2">{{ joke.setup }}</td>
                     <td class="px-2 py-2">{{ joke.punchline }}</td>
                     <td class="px-2 py-2 text-center stars">
-                        <font-awesome-icon v-for="star in 5" :icon="joke.rating >= star ? 'star' : 'star-half-alt'"
+                        <font-awesome-icon v-for="star in 5" :icon="joke.rating >= star ? 'star' : 'minus'"
                             class="cursor-pointer text-yellow-500 mx-0.5" @click="setRating(joke, star)" />
                     </td>
                     <td class="px-2 py-2 text-center">
@@ -63,7 +89,7 @@
 
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import { getProgrammingJokes, getRandomJoke } from '../services/requests'
 import Swal from 'sweetalert2'
 
@@ -72,6 +98,20 @@ const selected = ref<JokeType>(null)
 const joke = ref<any | null>(null)
 const tableJokes = ref<any[]>([]);
 type RatedJoke = { id: number; type: string; setup: string; punchline: string; rating?: number }
+const searchQuery = ref('')
+const filterRating = ref<number | ''>('')
+const sortBy = ref<'rating' | 'alphabetical' | ''>('')
+
+onMounted(() => {
+    const saved = localStorage.getItem('favoriteJokes')
+    if (saved) {
+        tableJokes.value = JSON.parse(saved)
+    }
+})
+
+watch(tableJokes, (newJokes) => {
+    localStorage.setItem('favoriteJokes', JSON.stringify(newJokes))
+}, { deep: true })
 
 async function fetchJoke(type: JokeType) {
     selected.value = type
@@ -115,7 +155,6 @@ function addJoke(joke: RatedJoke) {
                 confirmButtonText: 'OK',
                 confirmButtonColor: '#6366f1'
             })
-
         }
     } else {
         console.log('Choose one Joke Category')
@@ -130,27 +169,42 @@ function addJoke(joke: RatedJoke) {
     }
 }
 
-
 function setRating(joke: RatedJoke, rating: number) {
     const index = tableJokes.value.findIndex(el => el.id === joke.id)
     if (index !== -1) {
         tableJokes.value[index].rating = rating
     }
 }
+
 function removeJoke(id: number) {
     tableJokes.value = tableJokes.value.filter(joke => joke.id !== id)
 }
 
-onMounted(() => {
-    const saved = localStorage.getItem('favoriteJokes')
-    if (saved) {
-        tableJokes.value = JSON.parse(saved)
+const filteredJokes = computed(() => {
+    let filtered = [...tableJokes.value]
+    if (searchQuery.value.trim() !== '') {
+        const query = searchQuery.value.toLowerCase()
+        filtered = filtered.filter(joke =>
+            joke.type.toLowerCase().includes(query) ||
+            joke.setup.toLowerCase().includes(query) ||
+            joke.punchline.toLowerCase().includes(query)
+        )
     }
+    if (filterRating.value !== '') {
+        console.log(filterRating.value)
+        filtered = filtered.filter(joke => joke.rating === Number(filterRating.value))
+    }
+    if (sortBy.value === 'rating') {
+        filtered.sort((a, b) => b.rating - a.rating)
+    } else if (sortBy.value === 'alphabetical') {
+        filtered.sort((a, b) => {
+            const aText = `${a.type} ${a.setup} ${a.punchline}`.toLowerCase()
+            const bText = `${b.type} ${b.setup} ${b.punchline}`.toLowerCase()
+            return aText.localeCompare(bText)
+        })
+    }
+    return filtered
 })
-
-watch(tableJokes, (newJokes) => {
-    localStorage.setItem('favoriteJokes', JSON.stringify(newJokes))
-}, { deep: true })
 
 </script>
 
